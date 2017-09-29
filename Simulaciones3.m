@@ -169,11 +169,13 @@ end
 %**************************************************************************
 %Tiempo total de la simulacion
 T=6001;
-P=zeros(T,armonicos);
+P=[];
 for i=1:armonicos
 	for j=1:T
-		P(:,:)=cos(((pi/(Tk(R)*2.^(k(j)-R))*t(i)-theta(j))));
-	end
+		Paux(j)=cos(((pi/(Tk(R)*2^(k(i)-R))*t(j)-theta(i))));
+    end
+    P=[P Paux];
+    
 end
 xlswrite('DatosP.xlsx',P,'Hoja1','A1');
 %**************************************************************************
