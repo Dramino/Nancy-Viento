@@ -16,23 +16,23 @@ format short
 Vo=40;
 %Cambio a velocidad promediada a 10 min
 Uo=0.69*Vo;
-w0=0.0017;
-dw=0.0017;
+w0=0.0017;  %frecuencia inicial
+dw=0.0017;  %distancia entre frecuencias
 noFrecuencias=1470;
 wf=w0*noFrecuencias;
 x=zeros(1,noFrecuencias);
 w=linspace(w0 ,wf ,noFrecuencias);
-%Funci?on de densidad de turbulencia
+%Funci?on de densidad de turbulencia Davenport
 for i=1:noFrecuencias
     x(i)=1220*dw*i/Uo;
 end
 Sr=4*((x.^2)./((1+x.^2).^(4/3)))./w;
   %En este punto verificar la gr?fica (espectro de Potencia) de i,Sr
-plot(w,Sr)
-grid on
+%plot(w,Sr)
+%grid on
 
 %r=input('Introduzca la frecuencia natural de la estructura en ciclos/s:   ');
-r=0.85;
+r=0.85;  %frecuencia de la estructura Hz
 % Esta parte define los coeficientes de arrastre
 %coef=input('Introduzca el n?mero de coeficientes de arrastre de la estructura:   ');
 numCD=37;  
@@ -167,13 +167,15 @@ end
 %72012 valores de tiempo requeridos
 
 %**************************************************************************
-% P=zeros(armonicos*6001,1);
-% for i=1:6001
-% for j=1:armonicos
-% P(:,:)=cos(((pi/(Tk(R)*2.^(k(j)-R))*t(i)-theta(j))));
-% end
-% end
-% xlswrite('DatosP.xlsx',P,'Hoja1','A1');
+%Tiempo total de la simulacion
+T=6001;
+P=zeros(T,armonicos);
+for i=1:armonicos
+	for j=1:T
+		P(:,:)=cos(((pi/(Tk(R)*2.^(k(j)-R))*t(i)-theta(j))));
+	end
+end
+xlswrite('DatosP.xlsx',P,'Hoja1','A1');
 %**************************************************************************
 
 P=xlsread('P');
