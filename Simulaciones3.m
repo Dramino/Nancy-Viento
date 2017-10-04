@@ -248,7 +248,7 @@ for j=1:armonicos
 %          Cred(i)=ones*pi
             Credaux=(1/rafagaeq(j))*(Gc-hTorre(k))+1;
       elseif round(Gc-rafagaeq(j),4)<=hTorre(k) && hTorre(k)<=Gc
-            Cred=(-1/refagaeq(j))*(Gc-hTorre(k)+1);
+            Credaux=(-1/rafagaeq(j))*(Gc-hTorre(k))+1;
       else
             Credaux=0;         
       end
