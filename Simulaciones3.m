@@ -1,6 +1,7 @@
 clear,clc
 clear all
 format short
+NancyT=cputime;
 
 %disp('                                     Programa para simulaci?n de viento')
 %disp('                                   Universidad Nacional Aut?noma de M?xico')
@@ -16,23 +17,23 @@ format short
 Vo=40;
 %Cambio a velocidad promediada a 10 min
 Uo=0.69*Vo;
-w0=0.0017;  %frecuencia inicial
-dw=0.0017;  %distancia entre frecuencias
+w0=0.0017;
+dw=0.0017;
 noFrecuencias=1470;
 wf=w0*noFrecuencias;
 x=zeros(1,noFrecuencias);
 w=linspace(w0 ,wf ,noFrecuencias);
-%Funci?on de densidad de turbulencia Davenport
+
+%Función de densidad de turbulencia
 for i=1:noFrecuencias
     x(i)=1220*dw*i/Uo;
 end
 Sr=4*((x.^2)./((1+x.^2).^(4/3)))./w;
-  %En este punto verificar la gr?fica (espectro de Potencia) de i,Sr
 %plot(w,Sr)
 %grid on
 
 %r=input('Introduzca la frecuencia natural de la estructura en ciclos/s:   ');
-r=0.85;  %frecuencia de la estructura Hz
+r=0.85;
 % Esta parte define los coeficientes de arrastre
 %coef=input('Introduzca el n?mero de coeficientes de arrastre de la estructura:   ');
 numCD=37;  
@@ -63,7 +64,7 @@ div=17;
 hTramo=h/div;
 
 hTorre=zeros(numCD,1);
-hTorre(1,:)=h%-(hTramo/3)
+hTorre(1,:)=h;
      
 for i=1:10
     hTorre(i+1,:)=  hTorre(i,:)-(hTramo/3);
@@ -167,20 +168,17 @@ end
 %72012 valores de tiempo requeridos
 
 %**************************************************************************
-%Tiempo total de la simulacion
+% Tiempo total de la simulación
 T=6001;
 P=[];
 for i=1:armonicos
-	for j=1:T
-		Paux(j)=cos(((pi/(Tk(R)*2^(k(i)-R))*t(j)-theta(i))));
-    end
-    P=[P Paux];
-    
+    for j=1:T
+    Paux(j)=cos(((pi/(Tk(R)*2.^(k(i)-R))*t(j)-theta(i))));
 end
+P=[P Paux];
+end
+P=P';
 xlswrite('DatosP.xlsx',P,'Hoja1','A1');
-%**************************************************************************
-
-P=xlsread('P');
 
 xk=zeros(armonicos,1); 
 for i=1:armonicos
@@ -191,8 +189,6 @@ ccR=ck1(R)/2;
 ccR1=ck1(R-1)+(ck1(R)/4);
 ccR11=ck1(R+1)+(ck1(R)/4);
 
-
-%P=cos(((pi/(Tk(3)*2.^(k-R))).*t)-theta)
 
 % x=zeros(1470,1);
 % for i=1
@@ -212,7 +208,7 @@ sum(ck1);
 %Armónicos corregidos conforme al espectro del viento (ok)
 Pp=zeros(armonicos*6001,1);
 for i=1:6001
-Pp(i,:)=P(i,:)*ck1(1);
+    Pp(i,:)=P(i,:)*ck1(1);
 end
 
 for i=2:armonicos
@@ -221,11 +217,6 @@ for j=6001*(i-1)+1:6001*i
 end
 end
 
-% for    i=1:armonicos
-% for    j=1:armonicos*6001-(armonicos-i)*6001
-%     Pp(j,:)=P(:,:)*ck1(i);
-% end
-% end
 xlswrite('DatosPp.xlsx',Pp,'Hoja1','A1');
 
 %Correlación Espacial
@@ -242,43 +233,77 @@ end
 
 %Posición del centro de ráfaga para más info consultar tesis Celio fontao
 %Carril pp 80
-Gc=ones(armonicos*numCD)*h-(Lk(R)/2);
-%Gc=h-(Lk(R)/2);
+Gc=h-(Lk(R)/2);
 
 %Borrar esto posteriormente
-Gc=ones(armonicos*numCD)*82.6;
+Gc=82.6;
  
 %coeficiente de reducción de presiones fluctuantes
-Cred=zeros(numCD*armonicos,1);
+Cred=[];
+Credaux=[];
+%**************************************************************************
+for j=1:armonicos
+   for k=1:numCD
+      if round(Gc,4)<=round(hTorre(k),4) && round(hTorre(k),4)<=round(Gc+rafagaeq(j),4)
+%          Cred(i)=ones*pi
+            Credaux=(1/rafagaeq(j))*(Gc-hTorre(k))+1;
+      elseif round(Gc-rafagaeq(j),4)<=hTorre(k) && hTorre(k)<=Gc
+            Cred=(-1/refagaeq(j))*(Gc-hTorre(k)+1);
+      else
+            Credaux=0;         
+      end
+     Cred=[Cred Credaux];
+   end
+end
+Cred=Cred';
+xlswrite('Cred.xlsx',Cred,'Hoja1','A1');
 
+%**************************************************************************
+%Cred=xlsread('Cred');
+%**************************************************************************
+
+
+
+
+%Velocidad media
+Vm=[];
 for i=1:numCD
-    if Gc(i)<=hTorre(i) & hTorre(i)<=Gc(i)+rafagaeq(i)
-         Cred(i)=(1/rafagaeq)*(Gc(i)-hTorre(i)+1)
-%             else 
-%             if Gc(i)-rafagaeq<=hTorre & hTorre<=Gc(i)    
-%                 Cred(i)=(-1/refagaeq)*(Gc(i)-hTorre(i)+1)
-%             else
-%                 0
-%             end
-    end
+    Vm(:,:)=(0.5934*Vo)*(hTorre(:,:)/10).^0.185;
 end
 
+%Velocidad Pico
+V=[];
+for i=1:numCD
+    V(:,:)=0.94*Vo*(hTorre(:,:)/10).^0.1;
+end
+
+%Presión Pico
+q=[];
+for i=1:numCD
+    q=0.613*(V).^2;
+end
+
+%*****Carga estática *****
+qest=[];
+for i=1:numCD
+    qest=0.613*Vm.^2;
+end
+Fest=[];
+Fest=CD.*areas.*qest;
+%*****Carga estática *****
 
 
+%Presión fluctuante
+qf=[];
+qf=q-qest;
 
+%Presión armónica variable en tiempo, altura y armónicos
+% Q=[];
+% Q=qf.*Cred.*Pp;
+% xlswrite('DatosQ.xlsx',Q,'Hoja1','A1');
 
-
-
-
-
-
-
-
-
-
-
-
-
+ 
+NancyE=cputime-NancyT
 
 
 
