@@ -244,26 +244,20 @@ Credaux=[];
 %**************************************************************************
 for j=1:armonicos
    for k=1:numCD
-      if round(Gc,4)<=round(hTorre(k),4) && round(hTorre(k),4)<=round(Gc+rafagaeq(j),4)
-%          Cred(i)=ones*pi
-            Credaux=(1/rafagaeq(j))*(Gc-hTorre(k))+1;
-      elseif round(Gc-rafagaeq(j),4)<=hTorre(k) && hTorre(k)<=Gc
-            Credaux=(-1/rafagaeq(j))*(Gc-hTorre(k))+1;
-      else
-            Credaux=0;         
-      end
+            if Gc<=hTorre(k) && hTorre(k)<=Gc+rafagaeq(j);
+           %if round(Gc,4)<=round(hTorre(k),4) && round(hTorre(k),4)<=round(Gc+rafagaeq(j),4);
+            Credaux=(1/rafagaeq(j)).*(Gc-hTorre(k))+1;
+      elseif Gc-rafagaeq(j)<=hTorre(k) && hTorre(k)<=Gc
+     %elseif round(Gc-rafagaeq(j),4)<=hTorre(k) && hTorre(k)<=Gc
+                 Credaux=(-1/rafagaeq(j))*(Gc-hTorre(k))+1;
+            else
+                Credaux=0;     
+            end
      Cred=[Cred Credaux];
-   end
+      end
 end
-Cred=Cred';
+    Cred=Cred';
 xlswrite('Cred.xlsx',Cred,'Hoja1','A1');
-
-%**************************************************************************
-%Cred=xlsread('Cred');
-%**************************************************************************
-
-
-
 
 %Velocidad media
 Vm=[];
@@ -292,18 +286,49 @@ Fest=[];
 Fest=CD.*areas.*qest;
 %*****Carga estática *****
 
-
 %Presión fluctuante
 qf=[];
 qf=q-qest;
 
+size(qf)
+size(Cred)
+size(Pp)
 %Presión armónica variable en tiempo, altura y armónicos
-% Q=[];
-% Q=qf.*Cred.*Pp;
-% xlswrite('DatosQ.xlsx',Q,'Hoja1','A1');
+datos=numCD*armonicos*6001;
+Q=zeros(datos,1);
+% for k=1:armonicos
+%     for j=1:numCD
+%         for t=1:6001
+%             sub1=numCD*(t-1)+armonicos*(j-1)+k;
+%             sub2=armonicos*(j-1)+k;
+%             sub3=armonicos*(t-1)+k;
+%             Q(sub1)=qf(j)*Cred(sub2)*Pp(sub3);
+%         end
+%     end
+% end
 
- 
+
+for t=1:6001
+    for j=1:numCD
+        for k=1:armonicos
+            sub1=numCD*(t-1)+armonicos*(j-1)+k;
+            sub2=armonicos*(j-1)+k;
+            sub3=armonicos*(t-1)+k;
+            Q(sub1)=qf(j)*Cred(sub2)*Pp(sub3);
+        end
+    end
+end
 NancyE=cputime-NancyT
+ 
+    size(Q)
+
+dlmwrite('DatosQ',Q);
+
+
+
+NancyE=cputime-NancyT
+
+
 
 
 
