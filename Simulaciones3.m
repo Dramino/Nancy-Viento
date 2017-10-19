@@ -112,37 +112,13 @@ end
 
 xf=xf.^2;
 syms fk
-xf=(1220*fk/Uo)^2;
-SrF=4*(xf/(((1+xf)^(4/3))/(fk)));
-
-
+SrF=5953600*fk/((1+1488400*fk^2/Uo^2)^(4/3)*Uo^2)
 %***********************************************************
 %Integral punto por punto
 for i=1: armonicos
     ckSim(i)=sqrt(2*int(SrF,fpk(i),fak(i)));
-    ck(i)=double(ckSim(i));
+    Ck(i)=double(ckSim(i));
 end
-
-
-% %
-% syms ff
-% aux333=int(Sr,ff)
-% %
-% syms ff
-% aux2=zeros(armonicos,1);
-% for i=1:armonicos
-% aux2(i,:)=int(Sr(i,:),ff,fpk(i,:),fak(i,:))
-% end
-% % for i=1:armonicos
-% % aux2(i,:)=int(Sr,ff)
-% % end
-% Ck=zeros(armonicos,1);
-% for i=1:armonicos
-% Ck(1,:)=sqrt.(2*aux2(1,:))
-% end
-%************************************************************
-
-Ck=[0.444865;0.560439;0.705824;0.887853;1.111508;1.366177;1.575335;1.535191;1.142286;0.672208;0.353216;0.178951];
 
 aux3=zeros(armonicos,1);
 for i=1:armonicos
@@ -155,12 +131,10 @@ for i=1:armonicos
 end
 
 %?ngulos de fase generados pseudoaleatoriamente...
-%theta=0+(2*pi-0).*rand(armonicos,1)
+theta=(2*pi).*rand(armonicos,1);
+%theta para calibrar
 theta=[5.417;4.899;6.263;3.842;1.673;5.279;2.362;4.255;0.055;1.733;3.694;5.263];
 
-for i=1
-    t(:,1)=0:0.1:600; %Tiempo
-end
 
 %En esta parte falta corregir la manera en que recorre las "i" la función
 %P, ya que primero recorre los 12 valores de los armónicos y después de
@@ -171,14 +145,16 @@ end
 % Tiempo total de la simulación
 T=6001;
 P=[];
+p2=zeros(T*armonicos,1);
 for i=1:armonicos
     for j=1:T
-    Paux(j)=cos(((pi/(Tk(R)*2.^(k(i)-R))*t(j)-theta(i))));
-end
+        Paux(j)=cos(((pi/(Tk(R)*2.^(k(i)-R))*t(j)-theta(i))));
+        p2(T*(i-1)+j)=cos(((pi/(Tk(R)*2.^(k(i)-R))*t(j)-theta(i))));
+    end
 P=[P Paux];
 end
 P=P';
-xlswrite('DatosP.xlsx',P,'Hoja1','A1');
+% xlswrite('DatosP.xlsx',P,'Hoja1','A1');
 
 xk=zeros(armonicos,1); 
 for i=1:armonicos
@@ -217,7 +193,7 @@ for j=6001*(i-1)+1:6001*i
 end
 end
 
-xlswrite('DatosPp.xlsx',Pp,'Hoja1','A1');
+% xlswrite('DatosPp.xlsx',Pp,'Hoja1','A1');
 
 %Correlación Espacial
 %Tamaño de ráfaga equivalente
@@ -241,23 +217,27 @@ Gc=82.6;
 %coeficiente de reducción de presiones fluctuantes
 Cred=[];
 Credaux=[];
+Cred1=zeros(armonicos*numCD,1);
 %**************************************************************************
 for j=1:armonicos
    for k=1:numCD
-            if Gc<=hTorre(k) && hTorre(k)<=Gc+rafagaeq(j);
+            if Gc<=hTorre(k) && hTorre(k)<=Gc+rafagaeq(j)
            %if round(Gc,4)<=round(hTorre(k),4) && round(hTorre(k),4)<=round(Gc+rafagaeq(j),4);
             Credaux=(1/rafagaeq(j)).*(Gc-hTorre(k))+1;
+            Cred1(armonicos*(j-1)+k)=(1/rafagaeq(j)).*(Gc-hTorre(k))+1;
       elseif Gc-rafagaeq(j)<=hTorre(k) && hTorre(k)<=Gc
      %elseif round(Gc-rafagaeq(j),4)<=hTorre(k) && hTorre(k)<=Gc
                  Credaux=(-1/rafagaeq(j))*(Gc-hTorre(k))+1;
+                 Cred1(armonicos*(j-1)+k)=(-1/rafagaeq(j))*(Gc-hTorre(k))+1;
             else
-                Credaux=0;     
+                Credaux=0;  
+                Cred1(armonicos*(j-1)+k)=0;
             end
      Cred=[Cred Credaux];
       end
 end
     Cred=Cred';
-xlswrite('Cred.xlsx',Cred,'Hoja1','A1');
+% xlswrite('Cred.xlsx',Cred,'Hoja1','A1');
 
 %Velocidad media
 Vm=[];
